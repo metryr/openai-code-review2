@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 public class ApiTest {
 
     public static void main(String[] args) {
-        String apiKeySecret = "eccbef788dc14e60ab7c3150cf96aaa5.ZW6WXquRE3z045cu";
+        String apiKeySecret = "659d93cbd99d4f3d910b32f81fb68a09.S03p9y0ZoPeDDNKv";
         String token = BearerTokenUtils.getToken(apiKeySecret);
         System.out.println(token);
 
@@ -24,7 +24,8 @@ public class ApiTest {
 
     @Test
     public void test_http() throws IOException {
-        String apiKeySecret = "eccbef788dc14e60ab7c3150cf96aaa5.ZW6WXquRE3z045cu";
+        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
+        String apiKeySecret = "659d93cbd99d4f3d910b32f81fb68a09.S03p9y0ZoPeDDNKv";
         String token = BearerTokenUtils.getToken(apiKeySecret);
 
         URL url = new URL("https://open.bigmodel.cn/api/paas/v4/chat/completions");
@@ -35,7 +36,7 @@ public class ApiTest {
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt)");
         connection.setDoOutput(true);
-
+        System.out.println(connection.getRequestProperty("Authorization"));
         String code = "1+1";
 
         String jsonInpuString = "{"

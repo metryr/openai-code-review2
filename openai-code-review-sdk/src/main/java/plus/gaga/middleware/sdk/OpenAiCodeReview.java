@@ -1,17 +1,21 @@
 package plus.gaga.middleware.sdk;
 
 import com.alibaba.fastjson2.JSON;
+import plus.gaga.middleware.sdk.domain.model.ChatCompletionRequestDTO;
 import plus.gaga.middleware.sdk.domain.model.ChatCompletionSyncResponseDTO;
+import plus.gaga.middleware.sdk.domain.model.Model;
 import plus.gaga.middleware.sdk.types.utils.BearerTokenUtils;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 
 public class OpenAiCodeReview {
 
     public static void main(String[] args) throws Exception {
+        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
         System.out.println("测试执行");
 
         // 1. 代码检出
@@ -38,32 +42,42 @@ public class OpenAiCodeReview {
     }
 
     private static String codeReview(String diffCode) throws IOException {
-        String apiKeySecret = "eccbef788dc14e60ab7c3150cf96aaa5.ZW6WXquRE3z045cu";
+        String apiKeySecret = "659d93cbd99d4f3d910b32f81fb68a09.S03p9y0ZoPeDDNKv";
         String token = BearerTokenUtils.getToken(apiKeySecret);
 
         URL url = new URL("https://open.bigmodel.cn/api/paas/v4/chat/completions");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Authorization", "Bearer " + token);
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt)");
         connection.setDoOutput(true);
+        String requestMethod = connection.getRequestProperty("Authorization");
+        String requestMethod2 = connection.getRequestProperty("Content-Type");
+        String requestMethod3 = connection.getRequestProperty("User-Agent");
+        System.out.println(requestMethod);
+        System.out.println(requestMethod2);
+        System.out.println(requestMethod3);
 
 
-        String jsonInpuString = "{"
-                + "\"model\":\"glm-4-flash\","
-                + "\"messages\": ["
-                + "    {"
-                + "        \"role\": \"user\","
-                + "        \"content\": \"你是一个高级编程架构师，精通各类场景方案、架构设计和编程语言请，请您根据git diff记录，对代码做出评审。代码为: " + diffCode + "\""
-                + "    }"
-                + "]"
-                + "}";
+//        String jsonInpuString = "{"
+//                + "\"model\":\"glm-4-flash\","
+//                + "\"messages\": ["
+//                + "    {"
+//                + "        \"role\": \"user\","
+//                + "        \"content\": \"你是一个高级编程架构师，精通各类场景方案、架构设计和编程语言请，请您根据git diff记录，对代码做出评审。代码为: diff --git a/openai-code-review-test/src/test/java/plus/gaga/middleware/test/ApiTest.java b/openai-code-review-test/src/test/java/plus/gaga/middleware/test/ApiTest.javaindex 7712679..49ee824 100644--- a/openai-code-review-test/src/test/java/plus/gaga/middleware/test/ApiTest.java+++ b/openai-code-review-test/src/test/java/plus/gaga/middleware/test/ApiTest.java@@ -13,7 +13,7 @@ public class ApiTest {      @Test     public void test() {-        System.out.println(Integer.parseInt(\\\"aaaa\\\"));+        System.out.println(Integer.parseInt(\\\"aaaa1111\\\")); " +  "\""
+//                + "    }"
+//                + "]"
+//                + "}";
 
-
+        ChatCompletionRequestDTO chatCompletionRequestDTO = new ChatCompletionRequestDTO();
+        chatCompletionRequestDTO.setModel(Model.GLM_4_FLASH.getCode());
+        chatCompletionRequestDTO.setMessages(new ArrayList<ChatCompletionRequestDTO.Prompt>(){{
+            add(new ChatCompletionRequestDTO.Prompt("user","你是一个高级编程架构师，精通各类场景方案、架构设计和编程语言请，请您根据git diff记录，对代码做出评审。代码为:"));
+            add(new ChatCompletionRequestDTO.Prompt("user",diffCode));
+        }});
         try (OutputStream os = connection.getOutputStream()) {
-            byte[] input = jsonInpuString.getBytes(StandardCharsets.UTF_8);
+            byte[] input = JSON.toJSONString(chatCompletionRequestDTO).getBytes(StandardCharsets.UTF_8);
             os.write(input);
         }
 
