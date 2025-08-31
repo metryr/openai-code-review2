@@ -26,7 +26,7 @@ public class OpenAiCodeReview {
         int exitCode = process.waitFor();
         System.out.println("Exited with code:" + exitCode);
 
-        System.out.println("评审代码：" + diffCode.toString());
+        System.out.println("评审代码1：" + diffCode.toString());
     }
 
 }
