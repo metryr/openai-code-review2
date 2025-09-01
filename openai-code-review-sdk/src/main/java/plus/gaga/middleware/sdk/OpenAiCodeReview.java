@@ -1,6 +1,8 @@
 package plus.gaga.middleware.sdk;
 
 import com.alibaba.fastjson2.JSON;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import plus.gaga.middleware.sdk.domain.model.ChatCompletionRequestDTO;
 import plus.gaga.middleware.sdk.domain.model.ChatCompletionSyncResponseDTO;
 import plus.gaga.middleware.sdk.domain.model.Model;
@@ -10,13 +12,21 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Random;
 
 public class OpenAiCodeReview {
 
     public static void main(String[] args) throws Exception {
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
         System.out.println("测试执行");
+
+        String token = System.getenv("GITHUB_TOKEN");
+        if (null == token || token.isEmpty()) {
+            throw new RuntimeException("token is null");
+        }
 
         // 1. 代码检出
         ProcessBuilder processBuilder = new ProcessBuilder("git", "diff", "HEAD~1", "HEAD");
@@ -37,8 +47,12 @@ public class OpenAiCodeReview {
 
         System.out.println("diffCode:" + diffCode);
 
-        String codeReview = codeReview(diffCode.toString());
-        System.out.println(codeReview);
+        String log = codeReview(diffCode.toString());
+        System.out.println(log);
+
+        // 3. 写入评审日志
+        String logUrl = writeLog(token, log);
+        System.out.println("writeLog：" + logUrl);
     }
 
     private static String codeReview(String diffCode) throws IOException {
@@ -52,12 +66,6 @@ public class OpenAiCodeReview {
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt)");
         connection.setDoOutput(true);
-        String requestMethod = connection.getRequestProperty("Authorization");
-        String requestMethod2 = connection.getRequestProperty("Content-Type");
-        String requestMethod3 = connection.getRequestProperty("User-Agent");
-        System.out.println(requestMethod);
-        System.out.println(requestMethod2);
-        System.out.println(requestMethod3);
 
 
 //        String jsonInpuString = "{"
@@ -96,8 +104,48 @@ public class OpenAiCodeReview {
         connection.disconnect();
 
         ChatCompletionSyncResponseDTO response = JSON.parseObject(content.toString(), ChatCompletionSyncResponseDTO.class);
+
+
         return  response.getChoices().get(0).getMessage().getContent();
+
+
+    }
+    private static String writeLog(String token, String log) throws Exception {
+        Git git = Git.cloneRepository()
+                .setURI("https://github.com/metryr/openai-code-review2-log.git.git")
+                .setDirectory(new File("repo"))
+                .setCredentialsProvider(new UsernamePasswordCredentialsProvider(token, ""))
+                .call();
+
+        String dateFolderName = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        File dateFolder = new File("repo/" + dateFolderName);
+        if (!dateFolder.exists()) {
+            dateFolder.mkdirs();
+        }
+
+        String fileName = generateRandomString(12) + ".md";
+        File newFile = new File(dateFolder, fileName);
+        try (FileWriter writer = new FileWriter(newFile)) {
+            writer.write(log);
+        }
+
+        git.add().addFilepattern(dateFolderName + "/" + fileName).call();
+        git.commit().setMessage("Add new file via GitHub Actions").call();
+        git.push().setCredentialsProvider(new UsernamePasswordCredentialsProvider(token, "")).call();
+
+        System.out.println("Changes have been pushed to the repository.");
+
+        return "https://github.com/metryr/openai-code-review2-log.git/blob/master/" + dateFolderName + "/" + fileName;
     }
 
+    private static String generateRandomString(int length) {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            sb.append(characters.charAt(random.nextInt(characters.length())));
+        }
+        return sb.toString();
+    }
 
 }
