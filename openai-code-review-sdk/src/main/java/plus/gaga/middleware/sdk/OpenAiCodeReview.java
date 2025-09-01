@@ -26,7 +26,7 @@ public class OpenAiCodeReview {
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
         System.out.println("测试执行");
 
-        String token = getEnv("GITHUB_TOKEN");
+        String token = getEnv("CODE_TOKEN");
         if (null == token || token.isEmpty()) {
             throw new RuntimeException("token is null");
         }
@@ -154,7 +154,7 @@ public class OpenAiCodeReview {
 
     private static String writeLog(String token, String log) throws Exception {
         Git git = Git.cloneRepository()
-                .setURI(getEnv("GITHUB_REVIEW_LOG_URI"))
+                .setURI(getEnv("CODE_REVIEW_LOG_URI"))
                 .setDirectory(new File("repo"))
                 .setCredentialsProvider(new UsernamePasswordCredentialsProvider(token, ""))
                 .call();
@@ -177,7 +177,7 @@ public class OpenAiCodeReview {
 
         System.out.println("Changes have been pushed to the repository.");
 
-        return getEnv("GITHUB_REVIEW_LOG_URI") + "/blob/master/" + dateFolderName + "/" + fileName;
+        return getEnv("CODE_REVIEW_LOG_URI") + "/blob/master/" + dateFolderName + "/" + fileName;
     }
 
     private static String generateRandomString(int length) {
