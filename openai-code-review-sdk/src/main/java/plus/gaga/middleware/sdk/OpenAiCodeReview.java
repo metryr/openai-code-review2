@@ -165,7 +165,7 @@ public class OpenAiCodeReview {
             dateFolder.mkdirs();
         }
 
-        String fileName = getEnv("COMMIT_MESSAGE-")+getEnv("COMMIT_AUTHOR");
+        String fileName = getEnv("COMMIT_MESSAGE");
         File newFile = new File(dateFolder, fileName);
         try (FileWriter writer = new FileWriter(newFile)) {
             writer.write(log);
