@@ -112,7 +112,7 @@ public class OpenAiCodeReview {
     }
     private static String writeLog(String token, String log) throws Exception {
         Git git = Git.cloneRepository()
-                .setURI("https://github.com/metryr/openai-code-review2-log.git.git")
+                .setURI("https://github.com/metryr/openai-code-review2-log.git")
                 .setDirectory(new File("repo"))
                 .setCredentialsProvider(new UsernamePasswordCredentialsProvider(token, ""))
                 .call();
