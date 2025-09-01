@@ -7,10 +7,12 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import static plus.gaga.middleware.sdk.OpenAiCodeReview.getEnv;
+
 public class WXAccessTokenUtils {
 
-    private static final String APPID = "wx4898fe9b212c08a3";
-    private static final String SECRET = "cae932f0bec658c6c88b54ffc3d75025";
+    private static final String APPID = getEnv("WEIXIN_APPID");
+    private static final String SECRET = getEnv("WEIXIN_SECRET");
     private static final String GRANT_TYPE = "client_credential";
     private static final String URL_TEMPLATE = "https://api.weixin.qq.com/cgi-bin/token?grant_type=%s&appid=%s&secret=%s";
 

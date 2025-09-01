@@ -3,10 +3,12 @@ package plus.gaga.middleware.sdk.domain.model;
 import java.util.HashMap;
 import java.util.Map;
 
+import static plus.gaga.middleware.sdk.OpenAiCodeReview.getEnv;
+
 public class Message {
 
-    private String touser = "o0Xf21wvolAz9HXWkRK1_sVxE6as";
-    private String template_id = "GWOxa5a1TUk_v7-_TV2wNGISlUal5SWmHIQ1I4zJ0eU";
+    private String touser = getEnv("WEIXIN_TOUSER");
+    private String template_id = getEnv("WEIXIN_TEMPLATE_ID");
     private String url = "https://weixin.qq.com";
     private Map<String, Map<String, String>> data = new HashMap<>();
 

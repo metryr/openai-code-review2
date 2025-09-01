@@ -26,7 +26,7 @@ public class OpenAiCodeReview {
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
         System.out.println("测试执行");
 
-        String token = System.getenv("GITHUB_TOKEN");
+        String token = getEnv("GITHUB_TOKEN");
         if (null == token || token.isEmpty()) {
             throw new RuntimeException("token is null");
         }
@@ -61,7 +61,7 @@ public class OpenAiCodeReview {
     }
 
     private static String codeReview(String diffCode) throws IOException {
-        String apiKeySecret = "659d93cbd99d4f3d910b32f81fb68a09.S03p9y0ZoPeDDNKv";
+        String apiKeySecret = getEnv("CHATGLM_APIKEYSECRET");;
         String token = BearerTokenUtils.getToken(apiKeySecret);
 
         URL url = new URL("https://open.bigmodel.cn/api/paas/v4/chat/completions");
@@ -121,8 +121,8 @@ public class OpenAiCodeReview {
         System.out.println(accessToken);
 
         Message message = new Message();
-        message.put("project","big-market");
-        message.put("review","logUrl");
+        message.put("project",getEnv("COMMIT_PROJECT"));
+        message.put("review",getEnv("COMMIT_MESSAGE"));
         message.setUrl(logUrl);
         String url = String.format("https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=%s", accessToken);
         sendPostRequest(url, JSON.toJSONString(message));
@@ -154,7 +154,7 @@ public class OpenAiCodeReview {
 
     private static String writeLog(String token, String log) throws Exception {
         Git git = Git.cloneRepository()
-                .setURI("https://github.com/metryr/openai-code-review2-log.git")
+                .setURI(getEnv("GITHUB_REVIEW_LOG_URI"))
                 .setDirectory(new File("repo"))
                 .setCredentialsProvider(new UsernamePasswordCredentialsProvider(token, ""))
                 .call();
@@ -177,7 +177,7 @@ public class OpenAiCodeReview {
 
         System.out.println("Changes have been pushed to the repository.");
 
-        return "https://github.com/metryr/openai-code-review2-log.git/blob/master/" + dateFolderName + "/" + fileName;
+        return getEnv("GITHUB_REVIEW_LOG_URI") + "/blob/master/" + dateFolderName + "/" + fileName;
     }
 
     private static String generateRandomString(int length) {
@@ -188,6 +188,14 @@ public class OpenAiCodeReview {
             sb.append(characters.charAt(random.nextInt(characters.length())));
         }
         return sb.toString();
+    }
+
+    public static String getEnv(String key) {
+        String value = System.getenv(key);
+        if (null == value || value.isEmpty()) {
+            throw new RuntimeException("value is null");
+        }
+        return value;
     }
 
 }
