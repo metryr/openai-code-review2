@@ -141,16 +141,8 @@ public class OpenAiCodeReview {
         if (!dateFolder.exists()) {
             dateFolder.mkdirs();
         }
-        // 获取当前的日期和时间
-        LocalDateTime now = LocalDateTime.now();
 
-        // 定义日期时间格式
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-        // 格式化日期时间
-        String formattedDateTime = now.format(formatter);
-
-        String fileName = getEnv("COMMIT_MESSAGE")+formattedDateTime;
+        String fileName = getEnv("COMMIT_MESSAGE");
         File newFile = new File(dateFolder, fileName);
         try (FileWriter writer = new FileWriter(newFile)) {
             writer.write(log);
