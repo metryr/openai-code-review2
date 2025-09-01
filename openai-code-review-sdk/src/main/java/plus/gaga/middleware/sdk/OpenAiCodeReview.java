@@ -26,7 +26,6 @@ public class OpenAiCodeReview {
 
     public static void main(String[] args) throws Exception {
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
-        System.out.println("测试执行");
 
         String token = getEnv("CODE_TOKEN");
         if (null == token || token.isEmpty()) {
@@ -36,29 +35,18 @@ public class OpenAiCodeReview {
         // 1. 代码检出
         ProcessBuilder processBuilder = new ProcessBuilder("git", "diff", "HEAD~1", "HEAD");
         processBuilder.directory(new File("."));
-
         Process process = processBuilder.start();
-
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         String line;
-
         StringBuilder diffCode = new StringBuilder();
         while ((line = reader.readLine()) != null) {
             diffCode.append(line);
         }
-
-        int exitCode = process.waitFor();
-        System.out.println("Exited with code:" + exitCode);
-
-        System.out.println("diffCode:" + diffCode);
-
+        // 2. 代码评审
         String log = codeReview(diffCode.toString());
-        System.out.println(log);
-
         // 3. 写入评审日志
         String logUrl = writeLog(token, log);
-        System.out.println("writeLog：" + logUrl);
-
+        // 4. 推送通知
         pushMessage(logUrl);
     }
 
@@ -73,17 +61,6 @@ public class OpenAiCodeReview {
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 5.0; Windows NT; DigExt)");
         connection.setDoOutput(true);
-
-
-//        String jsonInpuString = "{"
-//                + "\"model\":\"glm-4-flash\","
-//                + "\"messages\": ["
-//                + "    {"
-//                + "        \"role\": \"user\","
-//                + "        \"content\": \"你是一个高级编程架构师，精通各类场景方案、架构设计和编程语言请，请您根据git diff记录，对代码做出评审。代码为: diff --git a/openai-code-review-test/src/test/java/plus/gaga/middleware/test/ApiTest.java b/openai-code-review-test/src/test/java/plus/gaga/middleware/test/ApiTest.javaindex 7712679..49ee824 100644--- a/openai-code-review-test/src/test/java/plus/gaga/middleware/test/ApiTest.java+++ b/openai-code-review-test/src/test/java/plus/gaga/middleware/test/ApiTest.java@@ -13,7 +13,7 @@ public class ApiTest {      @Test     public void test() {-        System.out.println(Integer.parseInt(\\\"aaaa\\\"));+        System.out.println(Integer.parseInt(\\\"aaaa1111\\\")); " +  "\""
-//                + "    }"
-//                + "]"
-//                + "}";
 
         ChatCompletionRequestDTO chatCompletionRequestDTO = new ChatCompletionRequestDTO();
         chatCompletionRequestDTO.setModel(Model.GLM_4_FLASH.getCode());
@@ -112,7 +89,6 @@ public class OpenAiCodeReview {
 
         ChatCompletionSyncResponseDTO response = JSON.parseObject(content.toString(), ChatCompletionSyncResponseDTO.class);
 
-
         return  response.getChoices().get(0).getMessage().getContent();
 
 
@@ -120,7 +96,6 @@ public class OpenAiCodeReview {
 
     private static void pushMessage(String logUrl) throws IOException {
         String accessToken = WXAccessTokenUtils.getAccessToken();
-        System.out.println(accessToken);
 
         Message message = new Message();
         message.put("project",getEnv("COMMIT_PROJECT"));
@@ -183,8 +158,6 @@ public class OpenAiCodeReview {
         git.add().addFilepattern(dateFolderName + "/" + fileName).call();
         git.commit().setMessage("Add new file via GitHub Actions").call();
         git.push().setCredentialsProvider(new UsernamePasswordCredentialsProvider(token, "")).call();
-
-        System.out.println("Changes have been pushed to the repository.");
 
         return getEnv("CODE_REVIEW_LOG_URI") + "/blob/master/" + dateFolderName + "/" + fileName;
     }
