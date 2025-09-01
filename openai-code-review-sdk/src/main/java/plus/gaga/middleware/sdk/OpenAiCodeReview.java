@@ -15,6 +15,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Random;
@@ -164,8 +166,15 @@ public class OpenAiCodeReview {
         if (!dateFolder.exists()) {
             dateFolder.mkdirs();
         }
+        LocalDateTime currentDateTime = LocalDateTime.now();
 
-        String fileName = getEnv("COMMIT_MESSAGE");
+        // 定义日期时间格式
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+        // 格式化当前日期时间
+        String formattedDateTime = currentDateTime.format(formatter);
+
+        String fileName = getEnv("COMMIT_MESSAGE")+formattedDateTime;
         File newFile = new File(dateFolder, fileName);
         try (FileWriter writer = new FileWriter(newFile)) {
             writer.write(log);
